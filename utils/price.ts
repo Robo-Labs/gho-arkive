@@ -19,7 +19,7 @@ export const getPrice = async (
 
   if (
     token.toLowerCase() ===
-      "0x2f7E653ff781d086C3BEcfb1Ca4381Ae22bECD03".toLowerCase()
+      "0x5d00fab5f2F97C4D682C1053cDCAA59c2c37900D".toLowerCase()
   ) {
     return 1;
   }

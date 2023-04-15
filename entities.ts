@@ -28,6 +28,8 @@ interface IAccountDebt {
   token: string;
   symbol: string;
   timestamp: number;
+  retaining: boolean;
+  highestAmount: number;
   type: "stable" | "variable";
 }
 
@@ -37,6 +39,8 @@ export const AccountDebt = createEntity<IAccountDebt>("AccountDebt", {
   token: String,
   symbol: String,
   type: String,
+  retaining: Boolean,
+  highestAmount: Number,
   timestamp: {
     type: Number,
     index: true,
@@ -62,23 +66,23 @@ export const BorrowStats = createEntity<IBorrowStats>("BorrowStats", {
   },
 });
 
-interface IRetention {
-  maxAccount: number;
-  inactiveAccount: number;
-  ratio: number;
-  day: number;
-  token: string;
-  symbol: string;
-}
+// interface IRetention {
+//   maxAccount: number;
+//   inactiveAccount: number;
+//   ratio: number;
+//   day: number;
+//   token: string;
+//   symbol: string;
+// }
 
-export const Retention = createEntity<IRetention>("Retention", {
-  maxAccount: Number,
-  inactiveAccount: Number,
-  ratio: Number,
-  day: Number,
-  token: String,
-  symbol: String,
-});
+// export const Retention = createEntity<IRetention>("Retention", {
+//   maxAccount: Number,
+//   inactiveAccount: Number,
+//   ratio: Number,
+//   day: Number,
+//   token: String,
+//   symbol: String,
+// });
 
 // interface IGHOStats {
 //   borrowersVsTotalBorrowers: number;

@@ -101,24 +101,27 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
 
     const parsedValue = parseFloat(formatUnits(value, decimals));
 
-    const [minterBalance] = await Promise.all([
-      await store.retrieve(
-        `${onBehalfOf}:${address}:debt`,
-        async () => {
-          const debt = await AccountDebt
-            .find({ account: onBehalfOf, token: address })
-            .sort({ timestamp: -1 })
-            .limit(1);
-          return debt[0]?.debtAmountTotal ??
-            parseFloat(
-              formatUnits(
-                await contract.read.balanceOf([onBehalfOf]),
-                decimals,
-              ),
-            );
-        },
-      ),
-    ]);
+    const [minterBalance, highestMinterBalance] = await store.retrieve(
+      `${onBehalfOf}:${address}:debt`,
+      async () => {
+        const debt = await AccountDebt.find({
+          account: onBehalfOf,
+          token: address,
+        })
+          .sort({ timestamp: -1 })
+          .limit(1);
+        if (debt[0] === undefined) {
+          const balance = parseFloat(
+            formatUnits(await contract.read.balanceOf([onBehalfOf]), decimals),
+          );
+          return [balance, balance];
+        }
+        return [
+          debt[0].debtAmountTotal,
+          debt[0].highestAmount,
+        ];
+      },
+    );
 
     const borrowStats = await store.retrieve(
       `${address}:borrowStats`,
@@ -136,6 +139,10 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
     );
 
     const minterNewBalance = minterBalance + parsedValue;
+    const highestNewMinterBalance = Math.max(
+      highestMinterBalance,
+      minterNewBalance,
+    );
 
     AccountDebt.create({
       account: onBehalfOf,
@@ -143,6 +150,8 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
       token: address,
       timestamp,
       type: "variable",
+      highestAmount: highestNewMinterBalance,
+      retaining: minterNewBalance / highestNewMinterBalance > 0.1,
       symbol,
     });
     BorrowStats.create({
@@ -153,7 +162,10 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
       symbol,
     });
 
-    store.set(`${onBehalfOf}:${address}:debt`, minterNewBalance);
+    store.set(`${onBehalfOf}:${address}:debt`, [
+      minterNewBalance,
+      highestNewMinterBalance,
+    ]);
     store.set(`${address}:borrowStats`, borrowStats);
   };
 
@@ -189,24 +201,27 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
 
     const parsedValue = parseFloat(formatUnits(amount, decimals));
 
-    const [minterBalance] = await Promise.all([
-      await store.retrieve(
-        `${onBehalfOf}:${address}:debt`,
-        async () => {
-          const debt = await AccountDebt
-            .find({ account: onBehalfOf, token: address })
-            .sort({ timestamp: -1 })
-            .limit(1);
-          return debt[0]?.debtAmountTotal ??
-            parseFloat(
-              formatUnits(
-                await contract.read.balanceOf([onBehalfOf]),
-                decimals,
-              ),
-            );
-        },
-      ),
-    ]);
+    const [minterBalance, highestMinterBalance] = await store.retrieve(
+      `${onBehalfOf}:${address}:debt`,
+      async () => {
+        const debt = await AccountDebt.find({
+          account: onBehalfOf,
+          token: address,
+        })
+          .sort({ timestamp: -1 })
+          .limit(1);
+        if (debt[0] === undefined) {
+          const balance = parseFloat(
+            formatUnits(await contract.read.balanceOf([onBehalfOf]), decimals),
+          );
+          return [balance, balance];
+        }
+        return [
+          debt[0].debtAmountTotal,
+          debt[0].highestAmount,
+        ];
+      },
+    );
 
     const borrowStats = await store.retrieve(
       `${address}:borrowStats`,
@@ -224,6 +239,10 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
     );
 
     const minterNewBalance = minterBalance + parsedValue;
+    const highestNewMinterBalance = Math.max(
+      highestMinterBalance,
+      minterNewBalance,
+    );
 
     AccountDebt.create({
       account: onBehalfOf,
@@ -231,6 +250,8 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
       token: address,
       timestamp,
       type: "stable",
+      highestAmount: highestNewMinterBalance,
+      retaining: minterNewBalance / highestNewMinterBalance > 0.1,
       symbol,
     });
     BorrowStats.create({
@@ -241,6 +262,9 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
       symbol,
     });
 
-    store.set(`${onBehalfOf}:${address}:debt`, minterNewBalance);
+    store.set(`${onBehalfOf}:${address}:debt`, [
+      minterNewBalance,
+      highestNewMinterBalance,
+    ]);
     store.set(`${address}:borrowStats`, borrowStats);
   };

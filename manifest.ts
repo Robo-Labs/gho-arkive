@@ -1,11 +1,6 @@
 import { Manifest } from "./deps.ts";
 import { aToken } from "./ABI/aToken.ts";
-import {
-  AccountCollateral,
-  AccountDebt,
-  BorrowStats,
-  Retention,
-} from "./entities.ts";
+import { AccountCollateral, AccountDebt, BorrowStats } from "./entities.ts";
 import {
   collateralMintHandler,
   sDebtMintHandler,
@@ -51,5 +46,5 @@ sepolia.contract(sDebtToken)
   });
 
 export default manifest
-  .addEntities([AccountCollateral, AccountDebt, BorrowStats, Retention])
+  .addEntities([AccountCollateral, AccountDebt, BorrowStats])
   .build();

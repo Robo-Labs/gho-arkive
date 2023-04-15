@@ -98,17 +98,24 @@ export const vDebtBurnHandler: EventHandlerFor<typeof vDebtToken, "Burn"> =
 
     const parsedValue = parseFloat(formatUnits(value, decimals));
 
-    const [burnerBalance] = await Promise.all([
-      await store.retrieve(`${from}:${address}:debt`, async () => {
+    const [burnerBalance, highestBurnerBalance] = await store.retrieve(
+      `${from}:${address}:debt`,
+      async () => {
         const debt = await AccountDebt.find({ account: from, token: address })
           .sort({ timestamp: -1 })
           .limit(1);
-        return debt[0]?.debtAmountTotal ??
-          parseFloat(
+        if (debt[0] === undefined) {
+          const balance = parseFloat(
             formatUnits(await contract.read.balanceOf([from]), decimals),
           );
-      }),
-    ]);
+          return [balance, balance];
+        }
+        return [
+          debt[0].debtAmountTotal,
+          debt[0].highestAmount,
+        ];
+      },
+    );
 
     const burnerNewBalance = burnerBalance - parsedValue;
 
@@ -133,6 +140,8 @@ export const vDebtBurnHandler: EventHandlerFor<typeof vDebtToken, "Burn"> =
       token: address,
       timestamp,
       type: "variable",
+      highestAmount: highestBurnerBalance,
+      retaining: burnerNewBalance / highestBurnerBalance > 0.1,
       symbol,
     });
     BorrowStats.create({
@@ -143,7 +152,10 @@ export const vDebtBurnHandler: EventHandlerFor<typeof vDebtToken, "Burn"> =
       symbol,
     });
 
-    store.set(`${from}:${address}:debt`, burnerNewBalance);
+    store.set(`${from}:${address}:debt`, [
+      burnerNewBalance,
+      highestBurnerBalance,
+    ]);
     store.set(`${address}:borrowStats`, borrowStats);
   };
 
@@ -179,19 +191,26 @@ export const sDebtBurnHandler: EventHandlerFor<typeof sDebtToken, "Burn"> =
 
     const parsedValue = parseFloat(formatUnits(amount, decimals));
 
-    const [burnerBalance] = await Promise.all([
-      await store.retrieve(`${from}:${address}:debt`, async () => {
+    const [burnerBalance, highestBurnerBalance] = await store.retrieve(
+      `${from}:${address}:debt`,
+      async () => {
         const debt = await AccountDebt.find({ account: from, token: address })
           .sort({ timestamp: -1 })
           .limit(1);
-        return debt[0]?.debtAmountTotal ??
-          parseFloat(
+        if (debt[0] === undefined) {
+          const balance = parseFloat(
             formatUnits(await contract.read.balanceOf([from]), decimals),
           );
-      }),
-    ]);
+          return [balance, balance];
+        }
+        return [
+          debt[0].debtAmountTotal,
+          debt[0].highestAmount,
+        ];
+      },
+    );
 
-    const minterNewBalance = burnerBalance - parsedValue;
+    const burnerNewBalance = burnerBalance - parsedValue;
 
     const borrowStats = await store.retrieve(
       `${address}:borrowStats`,
@@ -210,10 +229,12 @@ export const sDebtBurnHandler: EventHandlerFor<typeof sDebtToken, "Burn"> =
 
     AccountDebt.create({
       account: from,
-      debtAmountTotal: minterNewBalance,
+      debtAmountTotal: burnerNewBalance,
       token: address,
       timestamp,
       type: "stable",
+      highestAmount: highestBurnerBalance,
+      retaining: burnerNewBalance / highestBurnerBalance > 0.1,
       symbol,
     });
     BorrowStats.create({
@@ -224,6 +245,9 @@ export const sDebtBurnHandler: EventHandlerFor<typeof sDebtToken, "Burn"> =
       symbol,
     });
 
-    store.set(`${from}:${address}:debt`, minterNewBalance);
+    store.set(`${from}:${address}:debt`, [
+      burnerNewBalance,
+      highestBurnerBalance,
+    ]);
     store.set(`${address}:borrowStats`, borrowStats);
   };

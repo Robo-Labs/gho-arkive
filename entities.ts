@@ -4,6 +4,7 @@ interface IAccountCollateral {
   account: string;
   collateralAmountTotal: number;
   token: string;
+  symbol: string;
   timestamp: number;
 }
 
@@ -13,6 +14,7 @@ export const AccountCollateral = createEntity<IAccountCollateral>(
     account: String,
     collateralAmountTotal: Number,
     token: String,
+    symbol: String,
     timestamp: {
       type: Number,
       index: true,
@@ -24,13 +26,17 @@ interface IAccountDebt {
   account: string;
   debtAmountTotal: number;
   token: string;
+  symbol: string;
   timestamp: number;
+  type: "stable" | "variable";
 }
 
 export const AccountDebt = createEntity<IAccountDebt>("AccountDebt", {
   account: String,
   debtAmountTotal: Number,
   token: String,
+  symbol: String,
+  type: String,
   timestamp: {
     type: Number,
     index: true,
@@ -39,6 +45,7 @@ export const AccountDebt = createEntity<IAccountDebt>("AccountDebt", {
 
 interface IBorrowStats {
   token: string;
+  symbol: string;
   count: number;
   amount: number;
   timestamp: number;
@@ -46,6 +53,7 @@ interface IBorrowStats {
 
 export const BorrowStats = createEntity<IBorrowStats>("BorrowStats", {
   token: String,
+  symbol: String,
   count: Number,
   amount: Number,
   timestamp: {
@@ -60,6 +68,7 @@ interface IRetention {
   ratio: number;
   day: number;
   token: string;
+  symbol: string;
 }
 
 export const Retention = createEntity<IRetention>("Retention", {
@@ -68,6 +77,7 @@ export const Retention = createEntity<IRetention>("Retention", {
   ratio: Number,
   day: Number,
   token: String,
+  symbol: String,
 });
 
 // interface IGHOStats {

@@ -8,19 +8,26 @@ import {
 } from "./entities.ts";
 import {
   collateralMintHandler,
-  debtMintHandler,
+  sDebtMintHandler,
+  vDebtMintHandler,
 } from "./handlers/mintHandler.ts";
 import {
   collateralBurnHandler,
-  debtBurnHandler,
+  sDebtBurnHandler,
+  vDebtBurnHandler,
 } from "./handlers/burnHandler.ts";
-import { aTokenSources, vDebtTokenSources } from "./sources.ts";
+import {
+  aTokenSources,
+  sDebtTokenSources,
+  vDebtTokenSources,
+} from "./sources.ts";
 import { vDebtToken } from "./ABI/vDebtToken.ts";
+import { sDebtToken } from "./ABI/sDebtToken.ts";
 
 const manifest = new Manifest("GHO");
 
 const sepolia = manifest
-  .chain("sepolia", { blockRange: 100n });
+  .chain("sepolia", { blockRange: 1000n });
 
 sepolia.contract(aToken)
   .addSources(aTokenSources)
@@ -32,8 +39,15 @@ sepolia.contract(aToken)
 sepolia.contract(vDebtToken)
   .addSources(vDebtTokenSources)
   .addEventHandlers({
-    Mint: debtMintHandler,
-    Burn: debtBurnHandler,
+    Mint: vDebtMintHandler,
+    Burn: vDebtBurnHandler,
+  });
+
+sepolia.contract(sDebtToken)
+  .addSources(sDebtTokenSources)
+  .addEventHandlers({
+    Mint: sDebtMintHandler,
+    Burn: sDebtBurnHandler,
   });
 
 export default manifest

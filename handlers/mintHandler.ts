@@ -4,6 +4,7 @@ import { AccountCollateral, AccountDebt, BorrowStats } from "../entities.ts";
 import { vDebtToken } from "../ABI/vDebtToken.ts";
 import { sDebtToken } from "../ABI/sDebtToken.ts";
 import { getSymbol } from "../utils/symbol.ts";
+import { getPrice } from "../utils/price.ts";
 
 export const collateralMintHandler: EventHandlerFor<typeof aToken, "Mint"> =
   async (
@@ -23,6 +24,18 @@ export const collateralMintHandler: EventHandlerFor<typeof aToken, "Mint"> =
       client,
       store,
       address,
+    });
+
+    const underlying = await store.retrieve(
+      `${address}:underlying`,
+      contract.read.UNDERLYING_ASSET_ADDRESS,
+    );
+
+    const price = await getPrice({
+      client,
+      store,
+      blockNumber: event.blockNumber,
+      token: underlying,
     });
 
     // reduce rpc calls in case you have multiple events in the same block
@@ -61,6 +74,7 @@ export const collateralMintHandler: EventHandlerFor<typeof aToken, "Mint"> =
     AccountCollateral.create({
       account: onBehalfOf,
       collateralAmountTotal: minterNewBalance,
+      collateralAmountTotalUsd: minterNewBalance * price,
       token: address,
       timestamp,
       symbol,
@@ -89,6 +103,18 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
       client,
       store,
       address,
+    });
+
+    const underlying = await store.retrieve(
+      `${address}:underlying`,
+      contract.read.UNDERLYING_ASSET_ADDRESS,
+    );
+
+    const price = await getPrice({
+      client,
+      store,
+      blockNumber: event.blockNumber,
+      token: underlying,
     });
 
     const timestamp = await store.retrieve(
@@ -147,6 +173,7 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
     AccountDebt.create({
       account: onBehalfOf,
       debtAmountTotal: minterNewBalance,
+      debtAmountTotalUsd: minterNewBalance * price,
       token: address,
       timestamp,
       type: "variable",
@@ -158,6 +185,7 @@ export const vDebtMintHandler: EventHandlerFor<typeof vDebtToken, "Mint"> =
       token: address,
       count: borrowStats.count,
       amount: borrowStats.amount,
+      amountUsd: borrowStats.amount * price,
       timestamp,
       symbol,
     });
@@ -189,6 +217,18 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
       client,
       store,
       address,
+    });
+
+    const underlying = await store.retrieve(
+      `${address}:underlying`,
+      contract.read.UNDERLYING_ASSET_ADDRESS,
+    );
+
+    const price = await getPrice({
+      client,
+      store,
+      blockNumber: event.blockNumber,
+      token: underlying,
     });
 
     const timestamp = await store.retrieve(
@@ -247,6 +287,7 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
     AccountDebt.create({
       account: onBehalfOf,
       debtAmountTotal: minterNewBalance,
+      debtAmountTotalUsd: minterNewBalance * price,
       token: address,
       timestamp,
       type: "stable",
@@ -258,6 +299,7 @@ export const sDebtMintHandler: EventHandlerFor<typeof sDebtToken, "Mint"> =
       token: address,
       count: borrowStats.count,
       amount: borrowStats.amount,
+      amountUsd: borrowStats.amount * price,
       timestamp,
       symbol,
     });

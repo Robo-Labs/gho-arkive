@@ -4,6 +4,7 @@ import { AccountCollateral, AccountDebt, BorrowStats } from "../entities.ts";
 import { vDebtToken } from "../ABI/vDebtToken.ts";
 import { sDebtToken } from "../ABI/sDebtToken.ts";
 import { getSymbol } from "../utils/symbol.ts";
+import { getPrice } from "../utils/price.ts";
 
 export const collateralBurnHandler: EventHandlerFor<typeof aToken, "Burn"> =
   async (
@@ -23,6 +24,18 @@ export const collateralBurnHandler: EventHandlerFor<typeof aToken, "Burn"> =
       client,
       store,
       address,
+    });
+
+    const underlying = await store.retrieve(
+      `${address}:underlying`,
+      contract.read.UNDERLYING_ASSET_ADDRESS,
+    );
+
+    const price = await getPrice({
+      client,
+      store,
+      blockNumber: event.blockNumber,
+      token: underlying,
     });
 
     // reduce rpc calls in case you have multiple events in the same block
@@ -58,6 +71,7 @@ export const collateralBurnHandler: EventHandlerFor<typeof aToken, "Burn"> =
     AccountCollateral.create({
       account: from,
       collateralAmountTotal: burnerNewBalance,
+      collateralAmountTotalUsd: burnerNewBalance * price,
       token: address,
       timestamp,
       symbol,
@@ -86,6 +100,18 @@ export const vDebtBurnHandler: EventHandlerFor<typeof vDebtToken, "Burn"> =
       client,
       store,
       address,
+    });
+
+    const underlying = await store.retrieve(
+      `${address}:underlying`,
+      contract.read.UNDERLYING_ASSET_ADDRESS,
+    );
+
+    const price = await getPrice({
+      client,
+      store,
+      blockNumber: event.blockNumber,
+      token: underlying,
     });
 
     const timestamp = await store.retrieve(
@@ -137,6 +163,7 @@ export const vDebtBurnHandler: EventHandlerFor<typeof vDebtToken, "Burn"> =
     AccountDebt.create({
       account: from,
       debtAmountTotal: burnerNewBalance,
+      debtAmountTotalUsd: burnerNewBalance * price,
       token: address,
       timestamp,
       type: "variable",
@@ -148,6 +175,7 @@ export const vDebtBurnHandler: EventHandlerFor<typeof vDebtToken, "Burn"> =
       token: address,
       count: borrowStats.count,
       amount: borrowStats.amount,
+      amountUsd: borrowStats.amount * price,
       timestamp,
       symbol,
     });
@@ -179,6 +207,18 @@ export const sDebtBurnHandler: EventHandlerFor<typeof sDebtToken, "Burn"> =
       client,
       store,
       address,
+    });
+
+    const underlying = await store.retrieve(
+      `${address}:underlying`,
+      contract.read.UNDERLYING_ASSET_ADDRESS,
+    );
+
+    const price = await getPrice({
+      client,
+      store,
+      blockNumber: event.blockNumber,
+      token: underlying,
     });
 
     const timestamp = await store.retrieve(
@@ -230,6 +270,7 @@ export const sDebtBurnHandler: EventHandlerFor<typeof sDebtToken, "Burn"> =
     AccountDebt.create({
       account: from,
       debtAmountTotal: burnerNewBalance,
+      debtAmountTotalUsd: burnerNewBalance * price,
       token: address,
       timestamp,
       type: "stable",
@@ -241,6 +282,7 @@ export const sDebtBurnHandler: EventHandlerFor<typeof sDebtToken, "Burn"> =
       token: address,
       count: borrowStats.count,
       amount: borrowStats.amount,
+      amountUsd: borrowStats.amount * price,
       timestamp,
       symbol,
     });

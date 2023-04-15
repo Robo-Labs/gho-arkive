@@ -3,6 +3,7 @@ import { createEntity } from "./deps.ts";
 interface IAccountCollateral {
   account: string;
   collateralAmountTotal: number;
+  collateralAmountTotalUsd: number;
   token: string;
   symbol: string;
   timestamp: number;
@@ -13,6 +14,7 @@ export const AccountCollateral = createEntity<IAccountCollateral>(
   {
     account: String,
     collateralAmountTotal: Number,
+    collateralAmountTotalUsd: Number,
     token: String,
     symbol: String,
     timestamp: {
@@ -25,6 +27,7 @@ export const AccountCollateral = createEntity<IAccountCollateral>(
 interface IAccountDebt {
   account: string;
   debtAmountTotal: number;
+  debtAmountTotalUsd: number;
   token: string;
   symbol: string;
   timestamp: number;
@@ -36,6 +39,7 @@ interface IAccountDebt {
 export const AccountDebt = createEntity<IAccountDebt>("AccountDebt", {
   account: String,
   debtAmountTotal: Number,
+  debtAmountTotalUsd: Number,
   token: String,
   symbol: String,
   type: String,
@@ -52,6 +56,7 @@ interface IBorrowStats {
   symbol: string;
   count: number;
   amount: number;
+  amountUsd: number;
   timestamp: number;
 }
 
@@ -60,48 +65,9 @@ export const BorrowStats = createEntity<IBorrowStats>("BorrowStats", {
   symbol: String,
   count: Number,
   amount: Number,
+  amountUsd: Number,
   timestamp: {
     type: Number,
     index: true,
   },
 });
-
-// interface IRetention {
-//   maxAccount: number;
-//   inactiveAccount: number;
-//   ratio: number;
-//   day: number;
-//   token: string;
-//   symbol: string;
-// }
-
-// export const Retention = createEntity<IRetention>("Retention", {
-//   maxAccount: Number,
-//   inactiveAccount: Number,
-//   ratio: Number,
-//   day: Number,
-//   token: String,
-//   symbol: String,
-// });
-
-// interface IGHOStats {
-//   borrowersVsTotalBorrowers: number;
-//   borrowAmountVsTotalBorrowAmount: number;
-//   retention: number;
-//   collateralUsd: number;
-//   collateralVsTotalCollateral: number;
-//   treasuryInterest: number;
-// }
-
-// export const GHOStats = createEntity("GHOStats", {
-//   borrowersVsTotalBorrowers: Number,
-//   borrowAmountVsTotalBorrowAmount: Number,
-//   retention: Number,
-//   collateralUsd: Number,
-//   collateralVsTotalCollateral: Number,
-//   treasuryInterest: Number,
-//   timestamp: {
-//     type: Number,
-//     index: true,
-//   },
-// });

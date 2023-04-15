@@ -6,6 +6,7 @@ export {
   type PublicClient,
 } from "npm:viem";
 export {
+  type BlockHandler,
   createEntity,
   type EventHandlerFor,
   logger,

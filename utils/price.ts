@@ -1,7 +1,6 @@
 import { AaveOracle } from "../ABI/AaveOracle.ts";
 import {
   Address,
-  BlockTag,
   formatUnits,
   getContract,
   PublicClient,
@@ -11,15 +10,22 @@ import {
 export const getPrice = async (
   params: {
     token: Address;
-    blockTag: BlockTag;
+    blockNumber: bigint;
     client: PublicClient;
     store: Store;
   },
 ) => {
-  const { client, token, blockTag, store } = params;
+  const { client, token, store } = params;
+
+  if (
+    token.toLowerCase() ===
+      "0x2f7E653ff781d086C3BEcfb1Ca4381Ae22bECD03".toLowerCase()
+  ) {
+    return 1;
+  }
 
   const aaveOracle = getContract({
-    address: token,
+    address: "0x132C06E86CcCf93Afef7B33f0FF3e2E97EECf8f6",
     abi: AaveOracle,
     publicClient: client,
   });
@@ -34,11 +40,8 @@ export const getPrice = async (
   );
 
   const price = await store.retrieve(
-    `${token}:${blockTag}:price`,
-    async () =>
-      await aaveOracle.read.getAssetPrice([token], {
-        blockTag,
-      }),
+    `${token}:price`,
+    async () => await aaveOracle.read.getAssetPrice([token]),
   );
 
   return parseFloat(formatUnits(price, decimals));
